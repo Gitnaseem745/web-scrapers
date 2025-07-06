@@ -1,3 +1,8 @@
+// 🧪 Level 2A Project: Basic Blog-Style Scraper with Pagination Using Puppeteer
+// This generic scraper template uses Puppeteer to scrape titles and descriptions
+// from `.content-items` containers. It follows pagination using `.pagination__next a`,
+// making it reusable for blog or listing-type sites. 
+// Useful as a starter boilerplate for dynamic-page scraping.
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
