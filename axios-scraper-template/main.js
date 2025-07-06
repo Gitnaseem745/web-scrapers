@@ -1,3 +1,7 @@
+// 🌐 Level 1C Project: Static HTML Scraper with Custom Headers Using Axios + Cheerio
+// This scraper extracts titles and descriptions from elements with `.cotent-item` class.
+// It sends requests with custom HTTP headers to mimic a browser, ideal for bypassing
+// basic bot protections. It supports pagination using `.pager .next a` and saves data as JSON.
 const axios = require('axios');
 const cheerio = require('cheerio');
 const fs = require('fs');
