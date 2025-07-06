@@ -13,7 +13,7 @@ This guide documents all the scraping concepts, strategies, and best practices I
 | **Axios**    | Making HTTP requests to static pages        |
 | **Cheerio**  | jQuery-like parsing of HTML using selectors |
 | **Puppeteer**| Headless browser automation for dynamic content |
-| **fs**       | To write scraped data to `.json` files      |
+| **fs**       | To write scraped data to `.json` files and images |
 
 ---
 
@@ -28,11 +28,11 @@ const $ = cheerio.load(data);
 const title = $('h1').text();
 ````
 
-#### 💡 Things to Know:
+#### 💡 Tips:
 
-* Use `.text()` for inner text
-* Use `.attr('href')` for attributes
-* Loop with `.each()` for elements like `.quote`
+* Use `.text()` to extract inner text
+* Use `.attr()` to extract HTML attributes like `href` or `src`
+* Loop with `.each()` for elements
 
 ---
 
@@ -44,173 +44,202 @@ Used in: `static-multi-page-scraper/`, `multi-page-web-scraper/`, `articles-meta
 const nextPage = $('.pager .next a').attr('href');
 if (nextPage) {
   url = baseUrl + nextPage;
-} else {
-  url = null; // Exit loop
-}
-```
-
-#### 💡 Key Concepts:
-
-* Detect "Next" button/link
-* Use a `while (url)` loop
-* Always scrape and store before moving to next page
-
----
-
-### 3. 🤖 Puppeteer Basics for Dynamic Sites
-
-Used in: `puppeteer-scraper-template/`, `multi-page-web-scraper/`, `articles-meta-scraper/`
-
-```js
-await page.goto(url, { waitUntil: 'networkidle2' });
-await page.waitForSelector('.post');
-const data = await page.evaluate(() => {
-  return document.querySelector('h1').innerText;
-});
-```
-
-#### 💡 Best Practices:
-
-* Use `{ waitUntil: 'networkidle2' }` to wait for full content
-* Always `waitForSelector()` before scraping
-* Store results in arrays and write using `fs.writeFileSync()`
-
----
-
-### 4. 🔐 Scraping Behind Login
-
-Used in: `scraper-for-authenticated-site/`
-
-```js
-await page.goto(loginUrl);
-await page.type('input[name="username"]', 'admin');
-await page.type('input[name="password"]', 'admin');
-await Promise.all([
-  page.click('input[type="submit"]'),
-  page.waitForNavigation()
-]);
-```
-
-#### 💡 Notes:
-
-* Handle login as if you were a real user
-* Use `waitForNavigation()` after form submit
-* Once logged in, continue normal scraping flow
-
----
-
-### 5. 🌀 Infinite Scroll Scraping
-
-Used in: `infinite-scroll-web-scraper/`
-
-```js
-let prevHeight;
-while (true) {
-  prevHeight = await page.evaluate(() => document.body.scrollHeight);
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await new Promise(r => setTimeout(r, 1500));
-  const newHeight = await page.evaluate(() => document.body.scrollHeight);
-  if (newHeight === prevHeight) break;
-}
-```
-
-#### 💡 Key Ideas:
-
-* Scroll to bottom in loop
-* Wait for new content to load with `setTimeout`
-* Break the loop when no new content is added
-
----
-
-### 6. 🔗 Nested Scraping (Detail Pages)
-
-Used in: `articles-meta-scraper/`, `deep-blog-scraper/`, `infinite-scroll-web-scraper/`
-
-```js
-for (const item of items) {
-  const detailPage = await browser.newPage();
-  await detailPage.goto(item.link);
-  const fullContent = await detailPage.evaluate(() => {
-    return document.querySelector('.article__content').innerHTML;
-  });
-  item.content = fullContent;
-  await detailPage.close();
 }
 ```
 
 #### 💡 Tips:
 
-* Don’t block the loop (use `await` carefully)
-* Always `close()` opened pages
-* Handle missing elements with optional chaining (`?.`)
+* Detect pagination links
+* Loop until `next` button disappears
+* Scrape → Store → Then paginate
 
 ---
 
-## 🧪 Other Tricks & Useful Patterns
+### 3. 🤖 Puppeteer for Dynamic Pages
 
-### ✅ Wait for full content
+Used in: `puppeteer-scraper-template/`, `multi-page-web-scraper/`
 
 ```js
-await page.waitForSelector('.article__content');
+await page.goto(url, { waitUntil: 'networkidle2' });
+await page.waitForSelector('.post');
 ```
 
-### ✅ Save JSON with indentation
+#### 💡 Best Practices:
+
+* Use `waitForSelector()` before scraping content
+* Use `{ waitUntil: 'networkidle2' }` for complete page load
+* Use `page.evaluate()` for DOM-based scraping
+
+---
+
+### 4. 🔐 Login Scraping
+
+Used in: `scraper-for-authenticated-site/`
 
 ```js
-fs.writeFileSync('file.json', JSON.stringify(data, null, 2), 'utf-8');
+await page.type('input[name=email]', 'user@example.com');
+await page.type('input[name=password]', 'pass');
+await Promise.all([
+  page.click('button[type=submit]'),
+  page.waitForNavigation()
+]);
 ```
 
-### ✅ Add User-Agent headers with Axios
+#### 💡 Tips:
+
+* Simulate login just like a user
+* Wait for form submission + redirect
+* Continue scraping after login success
+
+---
+
+### 5. 🌀 Infinite Scroll Logic
+
+Used in: `infinite-scroll-web-scraper/`, `unsplash-home-scraper/`, `unsplash-search-scraper/`
 
 ```js
-await axios.get(url, {
-  headers: {
-    'User-Agent': 'Mozilla/5.0',
-    // other headers...
+let prevHeight = 0;
+while (true) {
+  prevHeight = await page.evaluate(() => document.body.scrollHeight);
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await new Promise(r => setTimeout(r, 2000));
+  const currHeight = await page.evaluate(() => document.body.scrollHeight);
+  if (currHeight === prevHeight) break;
+}
+```
+
+#### 💡 Tips:
+
+* Scroll down slowly to allow lazy loading
+* Delay with `setTimeout` after scroll
+* Break when content stops loading
+
+---
+
+### 6. 📷 Advanced Image Scraping & Filtering
+
+Used in: `unsplash-home-scraper/`, `unsplash-search-scraper/`
+
+```js
+const urls = new Set();
+document.querySelectorAll('img').forEach(img => {
+  const srcSet = img.getAttribute('srcset');
+  const src = srcSet?.split(',').pop()?.split(' ')?.[0] || img.src;
+
+  if (src && src.includes('images.unsplash.com')) {
+    urls.add(src); // filter placeholder & logo images
   }
 });
 ```
 
+#### 💡 Key Tricks:
+
+* Extract from `srcset` for high-quality images
+* Avoid `data:` or low-res placeholders
+* Filter using `includes('images.unsplash.com')`
+
 ---
 
-## 🗂️ JSON Output Format Example
+### 7. 🆕 Load More Button Handling
 
-```json
-[
-  {
-    "title": "How to Build a Blog",
-    "description": "Step-by-step guide",
-    "link": "https://example.com/article",
-    "content": "<p>Full HTML here</p>",
-    "scrapedAt": "2025-07-06T10:00:00.000Z"
+Used in: `unsplash-search-scraper/`
+
+```js
+const clicked = await page.evaluate(() => {
+  const btn = Array.from(document.querySelectorAll('button'))
+    .find(b => b.textContent?.toLowerCase().includes('load more'));
+  if (btn) {
+    btn.click();
+    return true;
   }
-]
+  return false;
+});
+```
+
+#### 💡 Tip:
+
+* Use `Array.from` and `find()` to match button text
+* Click only once before triggering infinite scroll
+
+---
+
+### 8. 📁 Folder Handling for Downloads
+
+```js
+const folder = path.join(__dirname, 'images', keyword);
+if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
+```
+
+#### 💡 Use `recursive: true` for nested folders.
+
+---
+
+### 9. 💾 Streaming Image Downloads
+
+```js
+const writer = fs.createWriteStream(filename);
+const response = await axios.get(url, { responseType: 'stream' });
+response.data.pipe(writer);
+```
+
+#### 💡 Notes:
+
+* Use `stream` to avoid memory bloat
+* Chain `.pipe()` to write image directly
+* Return a Promise to await write completion
+
+---
+
+## 📦 Project Logic Summary
+
+### 🔍 `unsplash-home-scraper/`
+
+* Scrapes trending images from homepage
+* Uses infinite scroll technique
+* Extracts unique `srcset` URLs (high-res only)
+* Downloads them to `/images/` folder
+
+### 🔎 `unsplash-search-scraper/`
+
+* Accepts keyword via CLI: `node main.js cars`
+* Goes to `https://unsplash.com/s/photos/cars`
+* Clicks “Load More” button
+* Scrolls infinitely
+* Filters out ads, placeholders
+* Saves images inside `/images/cars/`
+
+---
+
+## 🗂️ Folder-to-Tech Map
+
+| Folder                    | Description                 | Tech Used         |
+| ------------------------- | --------------------------- | ----------------- |
+| `unsplash-home-scraper`   | Home page image scraper     | Puppeteer + Axios |
+| `unsplash-search-scraper` | Keyword-based image scraper | Puppeteer + Axios |
+
+---
+
+## 📁 JSON/Image Storage Structure
+
+```bash
+/images/
+  /cars/
+    cars-img-1.jpg
+    cars-img-2.jpg
+  /cats/
+    cats-img-1.jpg
 ```
 
 ---
 
-## 📁 Folder-to-Tech Map
+## ✏️ Final Tips
 
-| Folder                           | Key Feature               | Tool/Library    |
-| -------------------------------- | ------------------------- | --------------- |
-| `axios-scraper-template`         | Static scraping           | Axios + Cheerio |
-| `puppeteer-scraper-template`     | Dynamic scraping          | Puppeteer       |
-| `multi-page-web-scraper`         | Pagination                | Puppeteer       |
-| `articles-meta-scraper`          | Full meta content         | Puppeteer       |
-| `deep-blog-scraper`              | Nested articles scrape      | Puppeteer       |
-| `scraper-for-authenticated-site` | Login-required scraping   | Puppeteer       |
-| `infinite-scroll-web-scraper`    | Infinite scroll + nesting | Puppeteer       |
+* Use `Set()` to avoid duplicate URLs
+* Always sanitize filenames (e.g., slugify keywords)
+* Respect scraping ethics: throttle, avoid abuse
+* Add `User-Agent` headers if needed
 
 ---
 
-## 🧠 Final Advice
-
-* Always start by **inspecting HTML manually**
-* Use `console.log()` or screenshots to debug
-* Scrape ethically: respect `robots.txt`, avoid aggressive scraping
-
----
-
-If this helped you, consider ⭐️ starring the repo and keep scraping responsibly.
-
+If this helped you, please ⭐️ the repo and keep learning.
 Happy scraping! 🕷️
