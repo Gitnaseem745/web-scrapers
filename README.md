@@ -10,16 +10,18 @@ GitHub: [Gitnaseem745/web-scrapers](https://github.com/Gitnaseem745/web-scrapers
 
 ```bash
 .
-├── articles-meta-scraper/           # Level 2B - Article data with full content scraping
-├── axios-scraper-template/          # Level 1 - Static scraper using Axios + Cheerio
-├── deep-blog-scraper/               # Level 2A - Multi-page blog with nested content
-├── infinite-scroll-web-scraper/     # Level 3B - Infinite scroll with author nested scraping
-├── multi-page-web-scraper/          # Level 2A - Paginated content scraper
-├── puppeteer-scraper-template/      # Level 1 - Basic Puppeteer template
-├── scraper-for-authenticated-site/  # Level 3A - Scraper behind login page
-├── static-multi-page-scraper/       # Level 1 - Cheerio multi-page static scraper
-├── scraping-guide.md                # Markdown guide to techniques used
-└── main.js                          # Entrypoint
+├── articles-meta-scraper/            # Level 2B - Article data with full content scraping
+├── axios-scraper-template/           # Level 1 - Static scraper using Axios + Cheerio
+├── deep-blog-scraper/                # Level 2A - Multi-page blog with nested content
+├── infinite-scroll-web-scraper/      # Level 3B - Infinite scroll with author nested scraping
+├── multi-page-web-scraper/           # Level 2A - Paginated content scraper
+├── puppeteer-scraper-template/       # Level 1 - Basic Puppeteer template
+├── scraper-for-authenticated-site/   # Level 3A - Scraper behind login page
+├── static-multi-page-scraper/        # Level 1 - Cheerio multi-page static scraper
+├── unsplash-home-scraper/            # Level 3C - Homepage infinite scroll image scraper
+├── unsplash-search-scraper/          # Level 3C++ - Keyword-based image scraper with "Load More"
+├── scraping-guide.md                 # Markdown guide to techniques used
+└── main.js                           # Entrypoint
 ````
 
 ---
@@ -54,10 +56,12 @@ GitHub: [Gitnaseem745/web-scrapers](https://github.com/Gitnaseem745/web-scrapers
 
 > Break into login-protected pages, infinite scroll content, and fully nested logic.
 
-| Folder                            | Description                                              |
-| --------------------------------- | -------------------------------------------------------- |
-| `scraper-for-authenticated-site/` | Logs into site and scrapes paginated content             |
-| `infinite-scroll-web-scraper/`    | Infinite scroll content scraper with author page nesting |
+| Folder                            | Description                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| `scraper-for-authenticated-site/` | Logs into site and scrapes paginated content                                   |
+| `infinite-scroll-web-scraper/`    | Infinite scroll content scraper with author page nesting                       |
+| `unsplash-home-scraper/`          | Scrapes trending homepage images by scrolling and downloading unique `srcset`  |
+| `unsplash-search-scraper/`        | Keyword-based image scraper (clicks "Load More" → infinite scroll → downloads) |
 
 ---
 
@@ -79,13 +83,15 @@ GitHub: [Gitnaseem745/web-scrapers](https://github.com/Gitnaseem745/web-scrapers
 * Selecting and extracting nested data
 * Common anti-scraping headers
 * JSON storage tips
+* Streaming image downloads
 
 ---
 
 ## 🤝 Contribute
 
 Have a cool scraper idea or improvement?
-Fork this repo → Make changes → Submit a PR. Contributions are welcome.
+Fork this repo → Make changes → Submit a PR.
+Contributions are always welcome!
 
 ---
 

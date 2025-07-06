@@ -7,3 +7,6 @@
 # accept package.json
 !package.json
 !package-lock.json
+
+# images
+*/images
