@@ -241,5 +241,109 @@ response.data.pipe(writer);
 
 ---
 
+## 📘 Chapter-Based Multi-Page Scraping (Custom Pagination Pattern)
+
+**Used in:** `o-level-mcqs-scraper/`
+
+```js
+while (chapterUrl) {
+  await page.goto(chapterUrl, { waitUntil: 'networkidle2' });
+  // Scrape current MCQs...
+  const nextPageHref = await page.evaluate(() => {
+    const activeItem = document.querySelector('.pagination .page-item.active');
+    if (!activeItem) return null;
+
+    const currentPageNum = parseInt(activeItem.innerText.trim());
+    const pageLinks = Array.from(document.querySelectorAll('.pagination .page-item a'))
+      .filter(el => !isNaN(parseInt(el.innerText.trim())));
+
+    const lastPageNum = pageLinks.length > 0
+      ? Math.max(...pageLinks.map(el => parseInt(el.innerText.trim())))
+      : null;
+
+    if (!lastPageNum || currentPageNum >= lastPageNum) return null;
+    const activeIndex = pageLinks.findIndex(el => parseInt(el.innerText.trim()) === currentPageNum);
+    const nextLink = pageLinks[activeIndex + 1];
+    return nextLink?.getAttribute('href') || null;
+  });
+
+  chapterUrl = nextPageHref;
+}
+```
+
+#### 🧠 What Makes It Special?
+
+* Traditional pagination often uses **"Next"** links.
+* This scraper smartly detects current and next **numbered pagination buttons**, enabling better control when **"Next" doesn’t exist or is unreliable**.
+* Detects and **stops automatically** when no more pages are left, **avoiding dead links or unnecessary 404s**.
+
+#### ✅ Real-World Usage:
+
+* Perfect for **exam sites** or **e-learning platforms** with:
+
+  * Structured chapters
+  * Question banks with paginated MCQs
+  * Complex URL structures per chapter
+
+---
+
+### 🔁 Multi-Chapter + Multi-Page Strategy
+
+**Flow Summary:**
+
+1. Starts at the main paper page.
+2. Collects all chapter links.
+3. Visits each chapter one by one.
+4. Inside each chapter, loops through **all paginated pages**.
+5. Scrapes every MCQ with:
+
+   * Question number
+   * English/Hindi text
+   * Multiple options
+   * Correct answer
+6. Repeats for every chapter.
+7. Stores everything in a **JSON file**, organized by chapters.
+
+---
+
+### 📁 Output JSON Format Example
+
+```json
+[
+  {
+    "chapter": "Introduction to Computer",
+    "chapter_mcqs": [
+      {
+        "question_num": "Q.1",
+        "question_eng": "What is a computer?",
+        "question_hi": "कंप्यूटर क्या है?",
+        "answers": ["Machine", "Animal", "Fruit", "Tree"],
+        "correct_answer": "Machine"
+      },
+      ...
+    ]
+  },
+  ...
+]
+```
+
+---
+
+### 🔍 Highlights:
+
+| Feature                   | Description                                                |
+| ------------------------- | ---------------------------------------------------------- |
+| 📑 **Nested Chapters**    | Scrapes each chapter individually, grouped in final output |
+| 🔁 **Paginated Pages**    | Smart detection of last page using button-based logic      |
+| 🌐 **Dynamic Navigation** | Uses Puppeteer to load, wait, and scroll per page          |
+| 🧠 **Real Exam Use**      | Extracted 6000+ MCQs for personal O-Level exam preparation |
+| 💾 **Clean JSON Output**  | Easy to export or convert to CSV, Excel, or quiz platforms |
+
+---
+
+> 💡 Tip: To adapt for other papers, just change the `siteUrl` in the script, and repeat the process.
+
+---
+
 If this helped you, please ⭐️ the repo and keep learning.
 Happy scraping! 🕷️

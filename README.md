@@ -15,6 +15,7 @@ GitHub: [Gitnaseem745/web-scrapers](https://github.com/Gitnaseem745/web-scrapers
 ├── deep-blog-scraper/                # Level 2A - Multi-page blog with nested content
 ├── infinite-scroll-web-scraper/      # Level 3B - Infinite scroll with author nested scraping
 ├── multi-page-web-scraper/           # Level 2A - Paginated content scraper
+├── o-level-mqc-scraper/              # Level 3C+++ - Advance Paginated mcqs scraper
 ├── puppeteer-scraper-template/       # Level 1 - Basic Puppeteer template
 ├── scraper-for-authenticated-site/   # Level 3A - Scraper behind login page
 ├── static-multi-page-scraper/        # Level 1 - Cheerio multi-page static scraper
@@ -52,7 +53,7 @@ GitHub: [Gitnaseem745/web-scrapers](https://github.com/Gitnaseem745/web-scrapers
 
 ---
 
-### 🚀 Level 3 – Auth, Infinite Scroll, and Deep Site Access
+### 🚀 Level 3 – Auth, Infinite Scroll, Nested Advance Pagination, and Deep Site Access
 
 > Break into login-protected pages, infinite scroll content, and fully nested logic.
 
@@ -62,6 +63,7 @@ GitHub: [Gitnaseem745/web-scrapers](https://github.com/Gitnaseem745/web-scrapers
 | `infinite-scroll-web-scraper/`    | Infinite scroll content scraper with author page nesting                       |
 | `unsplash-home-scraper/`          | Scrapes trending homepage images by scrolling and downloading unique `srcset`  |
 | `unsplash-search-scraper/`        | Keyword-based image scraper (clicks "Load More" → infinite scroll → downloads) |
+| `o-level-mcq-scraper/`        | Chapter-based mcqs scraper (click "Load" + "Scroll" ) |
 
 ---
 
