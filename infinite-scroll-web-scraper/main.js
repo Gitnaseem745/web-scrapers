@@ -48,7 +48,7 @@ async function scraper(url) {
         });
 
         console.log(`Finished scraping all ${quotes.length} quotes.`);
-        
+
         // scraping full author details
         for (const quote of quotes) {
             const author_page_url = quote.author.profile_link;
@@ -57,18 +57,18 @@ async function scraper(url) {
             const author_page = await browser.newPage();
             await author_page.goto(author_page_url, { waitUntil: 'networkidle2' });
             await author_page.waitForSelector('.author-details');
-            
+
             const author_details = await author_page.evaluate(() => {
                 const born_date = document.querySelector('.author-born-date').innerText.trim();
                 const description = document.querySelector('.author-description').innerText.trim();
                 return { born_date, description };
             });
-            
+
             quote.author.born_date = author_details.born_date;
             quote.author.description = author_details.description;
             await author_page.close();
         }
-        
+
         console.log(`Finished scraping all authors details.`);
         scraped_quotes.push(...quotes);
 
