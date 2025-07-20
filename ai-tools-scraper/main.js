@@ -323,11 +323,22 @@ async function scraper(url) {
 
                             if (featuresContainer) {
                                 const featureElements = featuresContainer.querySelectorAll('div');
-                                features = Array.from(featureElements).map(f => {
+                                const featuresArray = Array.from(featureElements).map(f => {
                                     const name = f.querySelector('h4')?.innerText?.trim() || f.querySelector('h3')?.innerText?.trim() || "";
                                     const details = f.querySelector('p')?.innerText?.trim() || "";
                                     return name || details ? { name, details } : null;
                                 }).filter(Boolean);
+
+                                // Remove duplicates based on name and details
+                                const seen = new Set();
+                                features = featuresArray.filter(feature => {
+                                    const identifier = `${feature.name}|${feature.details}`;
+                                    if (!seen.has(identifier)) {
+                                        seen.add(identifier);
+                                        return true;
+                                    }
+                                    return false;
+                                });
                             }
                         } catch (featuresError) {
                             console.log('Error extracting features:', featuresError.message);
